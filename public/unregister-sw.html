@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إلغاء تسجيل Service Worker</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .status {
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 16px;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 إصلاح Service Worker</h1>
+        
+        <div id="status" class="status info">
+            جاري التحقق من Service Workers...
+        </div>
+        
+        <div id="spinner" class="spinner"></div>
+        
+        <button id="unregisterBtn" style="display: none;" onclick="unregisterServiceWorkers()">
+            إلغاء تسجيل Service Workers
+        </button>
+        
+        <button onclick="window.location.href='/'" style="display: none;" id="goHomeBtn">
+            العودة للصفحة الرئيسية
+        </button>
+    </div>
+
+    <script>
+        const statusDiv = document.getElementById('status');
+        const spinner = document.getElementById('spinner');
+        const unregisterBtn = document.getElementById('unregisterBtn');
+        const goHomeBtn = document.getElementById('goHomeBtn');
+
+        async function checkServiceWorkers() {
+            try {
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    
+                    spinner.style.display = 'none';
+                    
+                    if (registrations.length === 0) {
+                        statusDiv.className = 'status success';
+                        statusDiv.innerHTML = '✅ لا يوجد Service Workers مسجلة<br>كل شيء على ما يرام!';
+                        goHomeBtn.style.display = 'inline-block';
+                    } else {
+                        statusDiv.className = 'status info';
+                        statusDiv.innerHTML = `⚠️ تم العثور على ${registrations.length} Service Worker(s)<br>يمكنك إلغاء تسجيلها لحل المشكلة`;
+                        unregisterBtn.style.display = 'inline-block';
+                        
+                        // عرض معلومات عن كل service worker
+                        registrations.forEach((reg, index) => {
+                            const info = document.createElement('div');
+                            info.style.fontSize = '12px';
+                            info.style.marginTop = '10px';
+                            info.style.padding = '10px';
+                            info.style.background = '#f8f9fa';
+                            info.style.borderRadius = '5px';
+                            info.textContent = `SW ${index + 1}: ${reg.scope}`;
+                            statusDiv.appendChild(info);
+                        });
+                    }
+                } else {
+                    spinner.style.display = 'none';
+                    statusDiv.className = 'status info';
+                    statusDiv.innerHTML = 'ℹ️ المتصفح لا يدعم Service Workers';
+                    goHomeBtn.style.display = 'inline-block';
+                }
+            } catch (error) {
+                spinner.style.display = 'none';
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = `❌ حدث خطأ: ${error.message}`;
+                console.error('Error checking service workers:', error);
+            }
+        }
+
+        async function unregisterServiceWorkers() {
+            statusDiv.className = 'status info';
+            statusDiv.innerHTML = '⏳ جاري إلغاء التسجيل...';
+            spinner.style.display = 'block';
+            unregisterBtn.disabled = true;
+
+            try {
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    
+                    for (const registration of registrations) {
+                        await registration.unregister();
+                        console.log('Unregistered:', registration.scope);
+                    }
+
+                    // مسح الكاش
+                    if ('caches' in window) {
+                        const cacheNames = await caches.keys();
+                        for (const cacheName of cacheNames) {
+                            await caches.delete(cacheName);
+                            console.log('Deleted cache:', cacheName);
+                        }
+                    }
+
+                    spinner.style.display = 'none';
+                    statusDiv.className = 'status success';
+                    statusDiv.innerHTML = `
+                        ✅ تم إلغاء تسجيل جميع Service Workers بنجاح!<br>
+                        <br>
+                        <strong>الخطوة التالية:</strong><br>
+                        1. أعد تحميل الصفحة (Ctrl+Shift+R)<br>
+                        2. أو أغلق جميع نوافذ الموقع وافتحه من جديد
+                    `;
+                    goHomeBtn.style.display = 'inline-block';
+                }
+            } catch (error) {
+                spinner.style.display = 'none';
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = `❌ حدث خطأ: ${error.message}`;
+                console.error('Error unregistering service workers:', error);
+            }
+        }
+
+        // التحقق التلقائي عند تحميل الصفحة
+        checkServiceWorkers();
+    </script>
+</body>
+</html>
+
+
