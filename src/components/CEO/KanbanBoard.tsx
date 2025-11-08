@@ -516,6 +516,13 @@ function DraggableOrderCard({ order, onMoveOrder, currentColumnId, availableColu
         <span className="text-base">👤</span>
         <span className="font-semibold">{order.customerName}</span>
       </div>
+    {/* Price */}
+    {(order.finalCost || order.estimatedCost) && (
+        <div className="text-sm font-bold text-green-700 mb-3 bg-green-50 rounded-lg px-3 py-2 flex items-center gap-2">
+          <span className="text-lg">💰</span>
+          {(order.finalCost || order.estimatedCost)?.toLocaleString('ar-SA')} ر.س
+        </div>
+      )}
 
       {/* Status Badge */}
       <div className="text-xs font-bold text-gray-700 mb-3 bg-white/80 backdrop-blur-sm rounded-lg px-3 py-2 inline-flex items-center gap-2 border-2 border-white shadow-sm">
@@ -523,14 +530,7 @@ function DraggableOrderCard({ order, onMoveOrder, currentColumnId, availableColu
         {statusLabels[order.status] || order.status}
       </div>
 
-      {/* Price */}
-      {(order.finalCost || order.estimatedCost) && (
-        <div className="text-sm font-bold text-green-700 mb-3 bg-green-50 rounded-lg px-3 py-2 flex items-center gap-2">
-          <span className="text-lg">💰</span>
-          {(order.finalCost || order.estimatedCost)?.toLocaleString('ar-SA')} ر.س
-        </div>
-      )}
-
+  
       {/* Design Badge */}
       {order.needsDesign && (
         <div className="inline-flex items-center gap-2 text-xs font-bold bg-purple-100 text-purple-800 px-3 py-2 rounded-lg border-2 border-purple-200">

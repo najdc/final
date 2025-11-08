@@ -127,17 +127,18 @@ export default function UsersPage() {
       <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8" dir="rtl">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-3xl font-bold text-gray-900">إدارة المستخدمين</h1>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">إدارة المستخدمين</h1>
+              <p className="text-sm text-gray-600 mt-1">إدارة حسابات الموظفين والصلاحيات</p>
+            </div>
             
             <button
-              onClick={() => {
-                // فتح صفحة إنشاء المستخدم
-                window.open('/scripts/create-user.html', '_blank');
-              }}
-              className="px-6 py-3 bg-najd-gold text-najd-blue rounded-md hover:bg-yellow-500 transition font-medium"
+              onClick={() => router.push('/users/new')}
+              className="w-full sm:w-auto px-6 py-3 bg-najd-gold text-najd-blue rounded-lg hover:bg-yellow-500 transition font-medium shadow-md flex items-center justify-center gap-2"
             >
-              + إضافة مستخدم
+              <span className="text-xl">+</span>
+              إضافة مستخدم
             </button>
           </div>
 

@@ -418,6 +418,49 @@ export default function CEODashboardPage() {
             <MetricCard title="تم التسليم" value={stats.statuses.delivered} icon="✅" color="bg-green-500" />
           </div>
 
+          {/* إجراءات سريعة */}
+          <div className="bg-white rounded-lg shadow-lg p-4 mb-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-3">⚡ إجراءات سريعة</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+              <QuickActionButton
+                title="إضافة مستخدم"
+                icon="👤+"
+                onClick={() => router.push('/users/new')}
+                color="bg-najd-gold hover:bg-yellow-500 text-najd-blue"
+              />
+              <QuickActionButton
+                title="المستخدمين"
+                icon="👥"
+                onClick={() => router.push('/users')}
+                color="bg-gray-700 hover:bg-gray-800 text-white"
+              />
+              <QuickActionButton
+                title="العملاء"
+                icon="🏢"
+                onClick={() => router.push('/customers')}
+                color="bg-blue-600 hover:bg-blue-700 text-white"
+              />
+              <QuickActionButton
+                title="المخزون"
+                icon="📦"
+                onClick={() => router.push('/ceo-dashboard/inventory')}
+                color="bg-green-600 hover:bg-green-700 text-white"
+              />
+              <QuickActionButton
+                title="الفواتير"
+                icon="💰"
+                onClick={() => router.push('/accounting/invoices')}
+                color="bg-purple-600 hover:bg-purple-700 text-white"
+              />
+              <QuickActionButton
+                title="عروض الأسعار"
+                icon="📋"
+                onClick={() => router.push('/quotations')}
+                color="bg-orange-600 hover:bg-orange-700 text-white"
+              />
+            </div>
+          </div>
+
           {/* Departments Overview */}
           <div className="grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
             <DepartmentCard
@@ -925,4 +968,25 @@ function getDepartmentLabel(dept: string): string {
     management: 'الإدارة',
   };
   return labels[dept] || dept;
+}
+
+// مكون زر الإجراء السريع
+interface QuickActionButtonProps {
+  title: string;
+  icon: string;
+  onClick: () => void;
+  color: string;
+}
+function QuickActionButton({ title, icon, onClick, color }: QuickActionButtonProps) {
+  return (
+    <button
+      onClick={onClick}
+      className={`${color} rounded-lg p-3 transition-all shadow-md hover:shadow-lg active:scale-95 font-medium`}
+    >
+      <div className="flex flex-col items-center gap-1">
+        <span className="text-2xl">{icon}</span>
+        <span className="text-xs sm:text-sm">{title}</span>
+      </div>
+    </button>
+  );
 }
