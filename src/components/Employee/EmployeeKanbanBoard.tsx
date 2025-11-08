@@ -297,6 +297,29 @@ export default function EmployeeKanbanBoard() {
     }
   };
 
+  // دالة نقل الطلب للموبايل (بدون السحب)
+  const handleMoveOrder = async (orderId: string, targetColumnId: string) => {
+    const order = orders.find((o) => o.id === orderId);
+    if (!order) return;
+
+    const targetColumn = columns.find((col) => col.id === targetColumnId);
+    if (!targetColumn) return;
+
+    const newStatus = targetColumn.statuses[0];
+
+    try {
+      const orderRef = doc(db, 'orders', orderId);
+      await updateDoc(orderRef, {
+        status: newStatus,
+        updatedAt: Timestamp.now(),
+      });
+      toast.success(`تم نقل الطلب ${order.orderNumber} إلى ${targetColumn.title}`);
+    } catch (error) {
+      console.error('Error moving order:', error);
+      toast.error('فشل نقل الطلب');
+    }
+  };
+
   const handleDragCancel = () => {
     setActiveId(null);
   };
@@ -361,7 +384,7 @@ export default function EmployeeKanbanBoard() {
           </div>
 
           {/* Statistics */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3">
             {columns.map((column) => {
               const columnOrders = getOrdersByColumn(column.id);
               return (
@@ -382,11 +405,17 @@ export default function EmployeeKanbanBoard() {
         </div>
 
         {/* Kanban Board */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3">
           {columns.map((column) => {
             const columnOrders = getOrdersByColumn(column.id);
             return (
-              <DroppableColumn key={column.id} column={column} orders={columnOrders} />
+              <DroppableColumn 
+                key={column.id} 
+                column={column} 
+                orders={columnOrders}
+                onMoveOrder={handleMoveOrder}
+                allColumns={columns}
+              />
             );
           })}
         </div>
@@ -414,9 +443,11 @@ export default function EmployeeKanbanBoard() {
 interface DroppableColumnProps {
   column: Column;
   orders: Order[];
+  onMoveOrder: (orderId: string, targetColumnId: string) => void;
+  allColumns: Column[];
 }
 
-function DroppableColumn({ column, orders }: DroppableColumnProps) {
+function DroppableColumn({ column, orders, onMoveOrder, allColumns }: DroppableColumnProps) {
   const { useDroppable } = require('@dnd-kit/core');
   const { setNodeRef } = useDroppable({
     id: column.id,
@@ -453,7 +484,13 @@ function DroppableColumn({ column, orders }: DroppableColumnProps) {
           </div>
         ) : (
           orders.map((order) => (
-            <DraggableOrderCard key={order.id} order={order} />
+            <DraggableOrderCard 
+              key={order.id} 
+              order={order}
+              onMoveOrder={onMoveOrder}
+              currentColumnId={column.id}
+              availableColumns={allColumns}
+            />
           ))
         )}
       </div>
@@ -463,9 +500,12 @@ function DroppableColumn({ column, orders }: DroppableColumnProps) {
 
 interface DraggableOrderCardProps {
   order: Order;
+  onMoveOrder?: (orderId: string, newColumnId: string) => void;
+  currentColumnId?: string;
+  availableColumns?: Column[];
 }
 
-function DraggableOrderCard({ order }: DraggableOrderCardProps) {
+function DraggableOrderCard({ order, onMoveOrder, currentColumnId, availableColumns }: DraggableOrderCardProps) {
   const { useDraggable } = require('@dnd-kit/core');
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: order.id,
@@ -480,17 +520,30 @@ function DraggableOrderCard({ order }: DraggableOrderCardProps) {
 
   const statusColor = statusColors[order.status] || 'border-gray-300 bg-white';
 
+  // دالة لنقل البطاقة إلى عمود آخر (للموبايل)
+  const handleMoveToColumn = (targetColumnId: string) => {
+    if (onMoveOrder) {
+      onMoveOrder(order.id, targetColumnId);
+    }
+  };
+
+  // الأعمدة المتاحة للنقل (باستثناء العمود الحالي)
+  const moveOptions = availableColumns?.filter(col => col.id !== currentColumnId) || [];
+
   return (
     <div
       ref={setNodeRef}
       style={style}
-      {...listeners}
-      {...attributes}
-      className={`rounded-xl shadow-md p-4 hover:shadow-2xl transition-all duration-200 border-3 cursor-grab active:cursor-grabbing transform hover:-translate-y-1 ${statusColor} ${
+      className={`rounded-xl shadow-md p-4 hover:shadow-2xl transition-all duration-200 border-3 ${statusColor} ${
         isDragging ? 'opacity-50 scale-110 rotate-2 shadow-2xl' : ''
       }`}
     >
-      <div className="flex items-center justify-center mb-2 opacity-40">
+      {/* Drag Indicator - مخفي على الموبايل */}
+      <div 
+        {...listeners}
+        {...attributes}
+        className="hidden md:flex items-center justify-center mb-2 opacity-40 cursor-grab active:cursor-grabbing"
+      >
         <div className="flex gap-1">
           <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
           <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
@@ -534,10 +587,34 @@ function DraggableOrderCard({ order }: DraggableOrderCardProps) {
         </div>
       )}
 
-      <div className="mt-3 pt-3 border-t border-gray-200/50 text-xs text-gray-500 text-center font-medium">
+      {/* Action Hint - مخفي على الموبايل */}
+      <div className="hidden md:block mt-3 pt-3 border-t border-gray-200/50 text-xs text-gray-500 text-center font-medium">
         ⬆️ اسحب لتغيير الحالة
       </div>
+
+      {/* أزرار النقل - تظهر فقط على الموبايل */}
+      {moveOptions.length > 0 && (
+        <div className="md:hidden mt-3 pt-3 border-t border-gray-200/50">
+          <p className="text-xs text-gray-600 font-medium mb-2">نقل إلى:</p>
+          <div className="flex flex-wrap gap-2">
+            {moveOptions.map((col) => (
+              <button
+                key={col.id}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleMoveToColumn(col.id);
+                }}
+                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-white hover:bg-gray-50 border-2 border-gray-300 rounded-lg transition-colors shadow-sm active:scale-95"
+              >
+                <span>{col.icon}</span>
+                <span>{col.title}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
 
