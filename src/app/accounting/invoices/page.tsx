@@ -10,7 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import Navbar from '@/components/Layout/Navbar';
 import { collection, query, where, orderBy, getDocs, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Invoice, InvoiceStatus } from '@najd/shared';
+import { Invoice, InvoiceStatus } from '@/types/shared';
 import { format } from 'date-fns/format';
 import { ar } from 'date-fns/locale/ar';
 

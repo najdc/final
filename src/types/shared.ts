@@ -530,3 +530,139 @@ export interface AudioRecording {
   waveform?: number[];
 }
 
+// =====================================
+// Customer Types - إدارة العملاء
+// =====================================
+
+export interface Customer {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  address?: string;
+  company?: string;
+  taxNumber?: string;
+  notes?: string;
+  createdBy: string;
+  createdByName?: string;
+  createdAt: any;
+  updatedAt: any;
+  isActive: boolean;
+  tags?: string[];
+}
+
+export interface CreateCustomerInput {
+  name: string;
+  phone: string;
+  email?: string;
+  address?: string;
+  company?: string;
+  taxNumber?: string;
+  notes?: string;
+}
+
+// =====================================
+// Invoice Types - نظام الفواتير
+// =====================================
+
+export enum InvoiceType {
+  SALES = 'sales',
+  PURCHASE = 'purchase',
+  PROFORMA = 'proforma',
+  CREDIT_NOTE = 'credit_note',
+  DEBIT_NOTE = 'debit_note',
+}
+
+export enum InvoiceStatus {
+  DRAFT = 'invoice_draft',
+  PENDING_APPROVAL = 'invoice_pending_approval',
+  APPROVED = 'invoice_approved',
+  SENT = 'invoice_sent',
+  PARTIALLY_PAID = 'invoice_partially_paid',
+  FULLY_PAID = 'invoice_fully_paid',
+  OVERDUE = 'invoice_overdue',
+  CANCELLED = 'invoice_cancelled',
+  REFUNDED = 'invoice_refunded',
+}
+
+export interface InvoiceItem {
+  id: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  taxRate?: number;
+  discount?: number;
+  notes?: string;
+}
+
+export interface PaymentRecord {
+  id: string;
+  amount: number;
+  paymentMethod: string;
+  paymentDate: any;
+  referenceNumber?: string;
+  notes?: string;
+  recordedBy: string;
+  recordedByName: string;
+  createdAt: any;
+}
+
+export interface Invoice {
+  id: string;
+  invoiceNumber: string;
+  invoiceType: InvoiceType;
+  status: InvoiceStatus;
+  
+  // معلومات العميل
+  customerName: string;
+  customerPhone: string;
+  customerEmail?: string;
+  customerAddress?: string;
+  companyName?: string;
+  taxNumber?: string;
+  
+  // الطلب المرتبط (اختياري)
+  relatedOrderId?: string;
+  relatedOrderNumber?: string;
+  
+  // البنود
+  items: InvoiceItem[];
+  
+  // المعلومات المالية
+  subtotal: number;
+  taxRate: number;
+  taxAmount: number;
+  discount?: number;
+  shippingCost?: number;
+  totalAmount: number;
+  
+  // معلومات الدفع
+  paidAmount: number;
+  remainingAmount: number;
+  paymentRecords: PaymentRecord[];
+  paymentDueDate?: string;
+  
+  // التواريخ
+  issueDate: string;
+  dueDate?: string;
+  
+  // الموافقات
+  preparedBy: string;
+  preparedByName: string;
+  approvedBy?: string;
+  approvedByName?: string;
+  approvedAt?: any;
+  
+  // ملاحظات
+  notes?: string;
+  internalNotes?: string;
+  
+  // التواريخ
+  createdAt: any;
+  updatedAt: any;
+  
+  // ملفات مرفقة
+  attachments?: AttachedFile[];
+}
+

@@ -10,8 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import Navbar from '@/components/Layout/Navbar';
 import { collection, addDoc, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import type { Order } from '@/types/shared';
-import { Invoice, InvoiceItem, InvoiceType, InvoiceStatus } from '@najd/shared';
+import { Order, Invoice, InvoiceItem, InvoiceType, InvoiceStatus } from '@/types/shared';
 
 const TAX_RATE = 15; // 15% ضريبة القيمة المضافة في السعودية
 

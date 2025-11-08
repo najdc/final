@@ -17,7 +17,7 @@ import {
   Timestamp,
   getDocs,
 } from 'firebase/firestore';
-import { Customer, CreateCustomerInput } from '@najd/shared';
+import { Customer, CreateCustomerInput } from '@/types/shared';
 import toast from 'react-hot-toast';
 
 interface CustomerStats {

@@ -22,8 +22,8 @@ import {
   PaymentStatus,
   COLLECTIONS,
   STORAGE_PATHS,
+  Customer,
 } from '@/types/shared';
-import { Customer } from '@najd/shared';
 import InventoryMaterialsSelector, { OrderInventoryMaterial } from '@/components/Orders/InventoryMaterialsSelector';
 import PurchaseRequestModal from '@/components/Orders/PurchaseRequestModal';
 import { decreaseInventory, checkMaterialsAvailability } from '@/utils/inventoryHelpers';
