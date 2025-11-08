@@ -1,10 +1,10 @@
 /**
- * شريط التنقل الرئيسي
+ * شريط التنقل الرئيسي - Responsive
  */
 
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -12,10 +12,12 @@ import { useNotifications } from '@/hooks/useNotifications';
 export default function Navbar() {
   const { user, signOut } = useAuth();
   const { unreadCount } = useNotifications();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
     try {
       await signOut();
+      setMobileMenuOpen(false);
     } catch (error) {
       console.error('خطأ في تسجيل الخروج:', error);
     }
@@ -27,13 +29,14 @@ export default function Navbar() {
     <nav className="bg-najd-blue text-white shadow-lg" dir="rtl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          {/* Logo and Main Nav */}
+          {/* Logo */}
           <div className="flex items-center">
             <Link href="/dashboard" className="flex items-center space-x-2 space-x-reverse">
               <span className="text-2xl font-bold text-najd-gold">نجد</span>
             </Link>
 
-            <div className="mr-8 flex space-x-4 space-x-reverse">
+            {/* Desktop Navigation */}
+            <div className="hidden lg:flex mr-8 space-x-4 space-x-reverse">
               {/* للموظفين العاديين - واجهة مبسطة */}
               {user.department && !user.isHead && user.role !== 'ceo' && user.role !== 'sales' && user.role !== 'sales_head' && user.department !== 'accounting' ? (
                 <>
@@ -171,11 +174,11 @@ export default function Navbar() {
           </div>
 
           {/* User Info and Actions */}
-          <div className="flex items-center space-x-4 space-x-reverse">
-            {/* Chat */}
+          <div className="flex items-center space-x-2 sm:space-x-4 space-x-reverse">
+            {/* Chat - Hidden on small screens */}
             <Link
               href="/chat"
-              className="relative p-2 rounded-full hover:bg-primary-700 transition"
+              className="hidden sm:block relative p-2 rounded-full hover:bg-primary-700 transition"
               title="المحادثات"
             >
               <svg
@@ -199,7 +202,7 @@ export default function Navbar() {
               className="relative p-2 rounded-full hover:bg-primary-700 transition"
             >
               <svg
-                className="w-6 h-6"
+                className="w-5 h-5 sm:w-6 sm:h-6"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -212,14 +215,14 @@ export default function Navbar() {
                 />
               </svg>
               {unreadCount > 0 && (
-                <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
+                <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full min-w-[18px]">
                   {unreadCount}
                 </span>
               )}
             </Link>
 
-            {/* User Menu */}
-            <div className="flex items-center space-x-3 space-x-reverse">
+            {/* User Info - Hidden on mobile */}
+            <div className="hidden md:flex items-center space-x-3 space-x-reverse">
               <div className="text-right">
                 <p className="text-sm font-medium">{user.displayName}</p>
                 <p className="text-xs text-gray-300">{getRoleLabel(user.role)}</p>
@@ -232,8 +235,199 @@ export default function Navbar() {
                 تسجيل الخروج
               </button>
             </div>
+
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="lg:hidden p-2 rounded-md hover:bg-primary-700 transition"
+              aria-label="القائمة"
+            >
+              {mobileMenuOpen ? (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden pb-4 pt-2 border-t border-primary-700">
+            {/* User Info on Mobile */}
+            <div className="md:hidden px-4 py-3 bg-primary-700 rounded-lg mb-3">
+              <p className="text-sm font-medium">{user.displayName}</p>
+              <p className="text-xs text-gray-300">{getRoleLabel(user.role)}</p>
+            </div>
+
+            <div className="space-y-1">
+              {/* للموظفين العاديين */}
+              {user.department && !user.isHead && user.role !== 'ceo' && user.role !== 'sales' && user.role !== 'sales_head' && user.department !== 'accounting' ? (
+                <Link
+                  href="/my-tasks"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-4 py-3 rounded-md text-base font-medium bg-green-600 hover:bg-green-700 transition"
+                >
+                  📋 مهامي
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-4 py-3 rounded-md text-base font-medium hover:bg-primary-700 transition"
+                  >
+                    لوحة التحكم
+                  </Link>
+
+                  {user.role === 'ceo' && (
+                    <Link
+                      href="/ceo-dashboard"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block px-4 py-3 rounded-md text-base font-medium bg-yellow-500 text-najd-blue hover:bg-yellow-400 transition"
+                    >
+                      👑 لوحة المدير
+                    </Link>
+                  )}
+
+                  <Link
+                    href="/orders"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-4 py-3 rounded-md text-base font-medium hover:bg-primary-700 transition"
+                  >
+                    الطلبات
+                  </Link>
+
+                  {user.role !== 'ceo' && user.role !== 'sales' && user.role !== 'sales_head' && user.department && (
+                    <Link
+                      href="/my-tasks"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block px-4 py-3 rounded-md text-base font-medium bg-green-600 hover:bg-green-700 transition"
+                    >
+                      📋 مهامي
+                    </Link>
+                  )}
+
+                  {user.isHead && (
+                    <Link
+                      href="/manage-team"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block px-4 py-3 rounded-md text-base font-medium bg-orange-600 hover:bg-orange-700 transition"
+                    >
+                      👥 إدارة الفريق
+                    </Link>
+                  )}
+
+                  {(user.department === 'sales' || user.department === 'accounting' || user.role === 'ceo') && (
+                    <Link
+                      href="/quotations"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block px-4 py-3 rounded-md text-base font-medium hover:bg-primary-700 transition"
+                    >
+                      💰 عروض الأسعار
+                    </Link>
+                  )}
+
+                  {user.department === 'accounting' && (
+                    <Link
+                      href="/accounting"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block px-4 py-3 rounded-md text-base font-medium bg-green-600 hover:bg-green-700 transition"
+                    >
+                      💼 لوحة الحسابات
+                    </Link>
+                  )}
+
+                  {user.department === 'design' && user.isHead && (
+                    <Link
+                      href="/designer"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block px-4 py-3 rounded-md text-base font-medium bg-purple-600 hover:bg-purple-700 transition"
+                    >
+                      🎨 لوحة المصمم
+                    </Link>
+                  )}
+
+                  {user.department === 'printing' && user.isHead && (
+                    <Link
+                      href="/printing"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block px-4 py-3 rounded-md text-base font-medium bg-indigo-600 hover:bg-indigo-700 transition"
+                    >
+                      🖨️ لوحة الطباعة
+                    </Link>
+                  )}
+
+                  {(user.role === 'sales' || user.role === 'sales_head') && (
+                    <>
+                      <Link
+                        href="/orders/new"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="block px-4 py-3 rounded-md text-base font-medium bg-najd-gold text-najd-blue hover:bg-yellow-500 transition"
+                      >
+                        + طلب طباعة
+                      </Link>
+                      <Link
+                        href="/quotation-requests/new"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="block px-4 py-3 rounded-md text-base font-medium bg-yellow-400 text-gray-900 hover:bg-yellow-300 transition"
+                      >
+                        💰 طلب عرض سعر
+                      </Link>
+                      <Link
+                        href="/customers"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="block px-4 py-3 rounded-md text-base font-medium bg-blue-500 hover:bg-blue-600 transition"
+                      >
+                        👥 العملاء
+                      </Link>
+                    </>
+                  )}
+
+                  {user.role === 'ceo' && (
+                    <>
+                      <Link
+                        href="/users"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="block px-4 py-3 rounded-md text-base font-medium hover:bg-primary-700 transition"
+                      >
+                        المستخدمين
+                      </Link>
+                      <Link
+                        href="/customers"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="block px-4 py-3 rounded-md text-base font-medium bg-blue-500 hover:bg-blue-600 transition"
+                      >
+                        👥 العملاء
+                      </Link>
+                    </>
+                  )}
+                </>
+              )}
+
+              {/* Chat link for mobile */}
+              <Link
+                href="/chat"
+                onClick={() => setMobileMenuOpen(false)}
+                className="sm:hidden block px-4 py-3 rounded-md text-base font-medium hover:bg-primary-700 transition"
+              >
+                💬 المحادثات
+              </Link>
+
+              {/* Sign Out Button for Mobile */}
+              <button
+                onClick={handleSignOut}
+                className="md:hidden w-full text-right px-4 py-3 rounded-md text-base font-medium bg-red-600 hover:bg-red-700 transition mt-2"
+              >
+                تسجيل الخروج
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );

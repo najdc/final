@@ -259,7 +259,7 @@ export default function KanbanBoard() {
       <div className="space-y-6" dir="rtl">
         {/* Header with Search */}
         <div className="bg-gradient-to-r from-najd-blue to-blue-600 rounded-xl shadow-lg p-6 text-white">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
             <div>
               <h2 className="text-3xl font-bold flex items-center gap-3">
                 📋 لوحة التاسكات
@@ -298,7 +298,7 @@ export default function KanbanBoard() {
           </div>
 
           {/* Statistics - Enhanced */}
-          <div className="grid grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {columns.map((column) => {
               const columnOrders = getOrdersByColumn(column.id);
               return (
@@ -319,7 +319,7 @@ export default function KanbanBoard() {
         </div>
 
         {/* Kanban Board */}
-        <div className="grid grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
           {columns.map((column) => {
             const columnOrders = getOrdersByColumn(column.id);
             return (

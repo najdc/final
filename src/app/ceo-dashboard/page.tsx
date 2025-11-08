@@ -37,6 +37,11 @@ export default function CEODashboardPage() {
   const [pendingQuotations, setPendingQuotations] = useState<any[]>([]);
   const [loadingQuotations, setLoadingQuotations] = useState(true);
   const [viewMode, setViewMode] = useState<'overview' | 'kanban'>('overview');
+  
+  // حالة المخزون
+  const [inventoryItems, setInventoryItems] = useState<any[]>([]);
+  const [loadingInventory, setLoadingInventory] = useState(true);
+  const [materialRequests, setMaterialRequests] = useState<any[]>([]);
 
   // التوجيه حسب الصلاحيات — بدون return من المكوّن
   useEffect(() => {
@@ -76,6 +81,42 @@ export default function CEODashboardPage() {
     };
 
     fetchPendingQuotations();
+  }, [user]);
+
+  // جلب بيانات المخزون
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchInventoryData = async () => {
+      try {
+        // جلب المخزون
+        const inventoryQuery = query(collection(db, 'inventory'));
+        const inventorySnapshot = await getDocs(inventoryQuery);
+        const inventory = inventorySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setInventoryItems(inventory);
+
+        // جلب طلبات الخامات المعلقة
+        const requestsQuery = query(
+          collection(db, 'material_requests'),
+          where('status', '==', 'pending_ceo_approval')
+        );
+        const requestsSnapshot = await getDocs(requestsQuery);
+        const requests = requestsSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setMaterialRequests(requests);
+      } catch (error) {
+        console.error('Error fetching inventory data:', error);
+      } finally {
+        setLoadingInventory(false);
+      }
+    };
+
+    fetchInventoryData();
   }, [user]);
 
   // لا نعمل return قبل hooks — نستخدم شرط داخل JSX
@@ -192,6 +233,26 @@ export default function CEODashboardPage() {
     );
   }, [orders]);
 
+  // إحصائيات المخزون
+  const inventoryStats = useMemo(() => {
+    const total = inventoryItems.length;
+    const outOfStock = inventoryItems.filter((item) => item.status === 'out_of_stock').length;
+    const lowStock = inventoryItems.filter((item) => item.status === 'low_stock').length;
+    const inStock = inventoryItems.filter((item) => item.status === 'in_stock').length;
+    const criticalItems = inventoryItems.filter(
+      (item) => item.status === 'out_of_stock' || item.status === 'low_stock'
+    );
+
+    return {
+      total,
+      outOfStock,
+      lowStock,
+      inStock,
+      criticalItems,
+      pendingRequests: materialRequests.length,
+    };
+  }, [inventoryItems, materialRequests]);
+
   // موافقة على طلب
   const approveOrder = async (orderId: string) => {
     try {
@@ -274,13 +335,13 @@ export default function CEODashboardPage() {
         <main className="max-w-[1920px] mx-auto py-6 px-4 sm:px-6 lg:px-8" dir="rtl">
           {/* Header */}
           <div className="mb-6">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between mb-4 gap-3">
               <div>
                 <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">👑 لوحة المدير التنفيذي</h1>
                 <p className="text-gray-600 mt-1">مراقبة شاملة واتخاذ القرار</p>
               </div>
 
-              <div className="flex gap-4 items-center">
+              <div className="flex flex-col sm:flex-row items-center gap-4">
                 {/* View Mode Tabs */}
                 <div className="flex gap-2 bg-white rounded-lg p-1 shadow">
                   <button
@@ -338,7 +399,7 @@ export default function CEODashboardPage() {
           ) : (
             <>
               {/* Key Metrics */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
             <MetricCard title="إجمالي الطلبات" value={stats.total} icon="📊" color="bg-blue-500" trend="+12%" />
             <MetricCard
               title="تحتاج موافقتك"
@@ -358,7 +419,7 @@ export default function CEODashboardPage() {
           </div>
 
           {/* Departments Overview */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
+          <div className="grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
             <DepartmentCard
               title="قسم التصميم"
               icon="🎨"
@@ -400,11 +461,139 @@ export default function CEODashboardPage() {
               ]}
             />
           </div>
+   {/* Inventory Management Section */}
+   <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                📦 متابعة المخزون
+              </h2>
+              <button
+                onClick={() => router.push('/ceo-dashboard/inventory')}
+                className="px-4 py-2 bg-najd-blue text-white rounded-lg hover:bg-opacity-90 transition text-sm font-medium"
+              >
+                عرض الكل →
+              </button>
+            </div>
 
+            {/* إحصائيات المخزون */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <InventoryStatCard
+                title="إجمالي المواد"
+                value={inventoryStats.total}
+                icon="📊"
+                color="bg-blue-500"
+              />
+              <InventoryStatCard
+                title="متوفر"
+                value={inventoryStats.inStock}
+                icon="✅"
+                color="bg-green-500"
+              />
+              <InventoryStatCard
+                title="مخزون قليل"
+                value={inventoryStats.lowStock}
+                icon="⚠️"
+                color="bg-yellow-500"
+              />
+              <InventoryStatCard
+                title="نفذ (عاجل)"
+                value={inventoryStats.outOfStock}
+                icon="❌"
+                color="bg-red-500"
+              />
+            </div>
+
+            {/* تنبيهات المخزون الحرجة */}
+            {inventoryStats.criticalItems.length > 0 && (
+              <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4 mb-4">
+                <div className="flex items-start gap-3">
+                  <div className="text-2xl">🚨</div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-red-900 mb-2">تنبيه: مواد تحتاج اهتمام فوري</h3>
+                    <div className="space-y-2">
+                      {inventoryStats.criticalItems.slice(0, 5).map((item: any) => (
+                        <div key={item.id} className="flex justify-between items-center text-sm">
+                          <span className="text-red-800">
+                            • {item.name} - {item.department && getDepartmentLabel(item.department)}
+                          </span>
+                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                            item.status === 'out_of_stock'
+                              ? 'bg-red-200 text-red-900'
+                              : 'bg-yellow-200 text-yellow-900'
+                          }`}>
+                            {item.status === 'out_of_stock' ? 'نفذ' : `${item.quantity} ${item.unit} فقط`}
+                          </span>
+                        </div>
+                      ))}
+                      {inventoryStats.criticalItems.length > 5 && (
+                        <p className="text-sm text-red-700 font-medium mt-2">
+                          + {inventoryStats.criticalItems.length - 5} مواد أخرى
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* طلبات الخامات المعلقة */}
+            {materialRequests.length > 0 && (
+              <div className="bg-orange-50 border-2 border-orange-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-bold text-orange-900 flex items-center gap-2">
+                    📋 طلبات خامات تحتاج موافقة
+                    <span className="bg-orange-500 text-white px-2 py-1 rounded-full text-xs">
+                      {materialRequests.length}
+                    </span>
+                  </h3>
+                  <button
+                    onClick={() => router.push('/ceo-dashboard/material-requests')}
+                    className="text-sm text-orange-700 hover:text-orange-900 font-medium"
+                  >
+                    عرض الكل →
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {materialRequests.slice(0, 3).map((request: any) => (
+                    <div key={request.id} className="bg-white rounded p-3 text-sm">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-semibold text-gray-900">{request.requestNumber}</p>
+                          <p className="text-gray-600 text-xs">من: {request.departmentName}</p>
+                        </div>
+                        <button
+                          onClick={() => router.push('/ceo-dashboard/material-requests')}
+                          className="px-3 py-1 bg-orange-600 text-white rounded text-xs hover:bg-orange-700"
+                        >
+                          مراجعة
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* الروابط السريعة */}
+            <div className="grid grid-cols-2 gap-3 mt-4">
+              <button
+                onClick={() => router.push('/ceo-dashboard/inventory')}
+                className="p-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-medium"
+              >
+                📦 إدارة المخزونات
+              </button>
+              <button
+                onClick={() => router.push('/ceo-dashboard/material-requests')}
+                className="p-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition text-sm font-medium"
+              >
+                📋 طلبات الخامات
+              </button>
+            </div>
+          </div>
           {/* Financial Overview */}
           <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">💵 نظرة عامة مالية</h2>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <FinancialMetric label="التكلفة المقدرة" value={stats.financial.totalEstimated} color="text-gray-700" />
               <FinancialMetric label="التكلفة النهائية" value={stats.financial.totalFinal} color="text-blue-700" />
               <FinancialMetric label="المبلغ المدفوع" value={stats.financial.totalPaid} color="text-green-700" />
@@ -456,6 +645,8 @@ export default function CEODashboardPage() {
               </div>
             </div>
           )}
+
+       
 
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
             {/* Pending Approval Orders */}
@@ -698,4 +889,40 @@ function StatusBadge({ label, value, color }: StatusBadgeProps) {
       <div className="text-sm font-medium">{label}</div>
     </div>
   );
+}
+
+// مكون إحصائيات المخزون
+interface InventoryStatCardProps {
+  title: string;
+  value: number;
+  icon: string;
+  color: string;
+}
+function InventoryStatCard({ title, value, icon, color }: InventoryStatCardProps) {
+  return (
+    <div className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:shadow-md transition">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-gray-600 mb-1">{title}</p>
+          <p className="text-3xl font-bold text-gray-900">{value}</p>
+        </div>
+        <div className={`w-14 h-14 ${color} rounded-full flex items-center justify-center text-2xl`}>
+          {icon}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// دالة للحصول على اسم القسم بالعربي
+function getDepartmentLabel(dept: string): string {
+  const labels: Record<string, string> = {
+    printing: 'الطباعة',
+    design: 'التصميم',
+    dispatch: 'الإرسال',
+    accounting: 'الحسابات',
+    sales: 'المبيعات',
+    management: 'الإدارة',
+  };
+  return labels[dept] || dept;
 }

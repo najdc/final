@@ -140,12 +140,12 @@ export default function PrintingPage() {
       <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2 sm:gap-3">
                 🖨️ لوحة قسم الطباعة
               </h1>
-              <p className="mt-2 text-gray-600">
+              <p className="mt-2 text-sm sm:text-base text-gray-600">
                 إدارة ومتابعة طلبات الطباعة
               </p>
             </div>
@@ -153,26 +153,26 @@ export default function PrintingPage() {
             {/* زر إدارة المخزون */}
             <button
               onClick={() => router.push('/printing/inventory')}
-              className="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition font-medium shadow-md flex items-center gap-2"
+              className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition font-medium shadow-md flex items-center justify-center gap-2 text-sm sm:text-base"
             >
-              <span className="text-xl">📦</span>
+              <span className="text-lg sm:text-xl">📦</span>
               إدارة المخزون
             </button>
           </div>
 
           {/* Stats Summary */}
-          <div className="flex justify-end gap-4">
-            <div className="bg-orange-50 px-4 py-2 rounded-lg border border-orange-200">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
+            <div className="bg-orange-50 px-3 sm:px-4 py-3 sm:py-2 rounded-lg border border-orange-200">
               <p className="text-xs text-orange-800">في الانتظار</p>
-              <p className="text-2xl font-bold text-orange-600">{stats.pending}</p>
+              <p className="text-xl sm:text-2xl font-bold text-orange-600">{stats.pending}</p>
             </div>
-            <div className="bg-blue-50 px-4 py-2 rounded-lg border border-blue-200">
+            <div className="bg-blue-50 px-3 sm:px-4 py-3 sm:py-2 rounded-lg border border-blue-200">
               <p className="text-xs text-blue-800">جاري الطباعة</p>
-              <p className="text-2xl font-bold text-blue-600">{stats.inProgress}</p>
+              <p className="text-xl sm:text-2xl font-bold text-blue-600">{stats.inProgress}</p>
             </div>
-            <div className="bg-green-50 px-4 py-2 rounded-lg border border-green-200">
+            <div className="bg-green-50 px-3 sm:px-4 py-3 sm:py-2 rounded-lg border border-green-200">
               <p className="text-xs text-green-800">مكتملة</p>
-              <p className="text-2xl font-bold text-green-600">{stats.completed}</p>
+              <p className="text-xl sm:text-2xl font-bold text-green-600">{stats.completed}</p>
             </div>
           </div>
         </div>
@@ -181,10 +181,10 @@ export default function PrintingPage() {
         <div className="mb-6">
           <input
             type="text"
-            placeholder="بحث (رقم الطلب، اسم العميل، رقم الهاتف...)"
+            placeholder="🔍 بحث (رقم الطلب، اسم العميل، رقم الهاتف...)"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
         </div>
 
@@ -193,29 +193,32 @@ export default function PrintingPage() {
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
             {KANBAN_COLUMNS.map((column) => {
               const columnOrders = getOrdersForColumn(column.status);
               
               return (
                 <div key={column.id} className="flex flex-col">
                   {/* Column Header */}
-                  <div className={`${column.color} rounded-t-lg border-2 p-4`}>
+                  <div className={`${column.color} rounded-t-lg border-2 p-3 sm:p-4`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="text-2xl">{column.icon}</span>
-                        <h2 className="font-bold text-gray-900">{column.title}</h2>
+                        <span className="text-xl sm:text-2xl">{column.icon}</span>
+                        <h2 className="font-bold text-sm sm:text-base text-gray-900">{column.title}</h2>
                       </div>
-                      <span className="bg-white px-2 py-1 rounded-full text-sm font-bold">
+                      <span className="bg-white px-2 py-1 rounded-full text-xs sm:text-sm font-bold">
                         {columnOrders.length}
                       </span>
                     </div>
                   </div>
 
                   {/* Column Content */}
-                  <div className={`${column.color} rounded-b-lg border-2 border-t-0 p-4 flex-1 min-h-[500px] space-y-3`}>
+                  <div className={`${column.color} rounded-b-lg border-2 border-t-0 p-3 sm:p-4 flex-1 min-h-[300px] sm:min-h-[400px] lg:min-h-[500px] space-y-3`}>
                     {columnOrders.length === 0 ? (
-                      <p className="text-center text-gray-500 py-8">لا توجد طلبات</p>
+                      <div className="flex flex-col items-center justify-center py-8 text-center">
+                        <span className="text-4xl mb-2">📭</span>
+                        <p className="text-sm text-gray-500">لا توجد طلبات</p>
+                      </div>
                     ) : (
                       columnOrders.map((order) => (
                         <OrderCard
@@ -279,16 +282,16 @@ function OrderCard({
   const nextStatus = getNextStatus(order.status);
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow border border-gray-200">
+    <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 hover:shadow-lg transition-shadow border border-gray-200">
       {/* Order Header */}
-      <div className="flex items-start justify-between mb-3">
-        <div>
-          <h3 className="font-bold text-gray-900">{order.orderNumber}</h3>
-          <p className="text-sm text-gray-600">{order.customerName}</p>
-          <p className="text-xs text-gray-500">{order.customerPhone}</p>
+      <div className="flex items-start justify-between mb-3 gap-2">
+        <div className="flex-1 min-w-0">
+          <h3 className="font-bold text-sm sm:text-base text-gray-900 truncate">{order.orderNumber}</h3>
+          <p className="text-xs sm:text-sm text-gray-600 truncate">{order.customerName}</p>
+          <p className="text-xs text-gray-500 truncate">{order.customerPhone}</p>
         </div>
         <span
-          className="px-2 py-1 text-xs font-medium rounded-full text-white"
+          className="px-2 py-1 text-xs font-medium rounded-full text-white whitespace-nowrap flex-shrink-0"
           style={{ backgroundColor: getPriorityColor(order.priority) }}
         >
           {PRIORITY_LABELS[order.priority]}
@@ -297,16 +300,16 @@ function OrderCard({
 
       {/* Order Details */}
       <div className="mb-3 space-y-1">
-        <div className="flex items-center gap-2 text-sm">
+        <div className="flex items-center gap-2 text-xs sm:text-sm">
           <span className="text-gray-600">نوع الطباعة:</span>
           <span className="font-medium text-gray-900">{PRINT_TYPE_LABELS[order.printType]}</span>
         </div>
-        <div className="flex items-center gap-2 text-sm">
+        <div className="flex items-center gap-2 text-xs sm:text-sm">
           <span className="text-gray-600">الكمية:</span>
           <span className="font-medium text-gray-900">{order.quantity}</span>
         </div>
         {order.requestedDeliveryDate && (
-          <div className="flex items-center gap-2 text-sm">
+          <div className="flex items-center gap-2 text-xs sm:text-sm">
             <span className="text-gray-600">التسليم:</span>
             <span className="font-medium text-gray-900">
               {format(new Date(order.requestedDeliveryDate), 'dd/MM/yyyy')}
@@ -321,7 +324,7 @@ function OrderCard({
           <button
             onClick={() => onStatusUpdate(order.id, nextStatus)}
             disabled={isUpdating}
-            className="w-full px-3 py-2 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700 transition disabled:opacity-50 font-medium"
+            className="w-full px-3 py-2 bg-indigo-600 text-white text-xs sm:text-sm rounded-md hover:bg-indigo-700 transition disabled:opacity-50 font-medium"
           >
             {isUpdating ? 'جاري التحديث...' : getActionLabel(order.status)}
           </button>
@@ -329,7 +332,7 @@ function OrderCard({
         
         <button
           onClick={onViewDetails}
-          className="w-full px-3 py-2 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200 transition"
+          className="w-full px-3 py-2 bg-gray-100 text-gray-700 text-xs sm:text-sm rounded-md hover:bg-gray-200 transition"
         >
           عرض التفاصيل
         </button>

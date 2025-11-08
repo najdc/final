@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useChat, useChatMessages, useAllowedChatUsers } from '@/hooks/useChat';
 import { useAuth } from '@/contexts/AuthContext';
+import Navbar from '@/components/Layout/Navbar';
 import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
 import { ar } from 'date-fns/locale/ar';
 import { Chat, Message } from '@/types/shared';
@@ -75,16 +76,21 @@ export default function ChatPage() {
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-gray-500">يرجى تسجيل الدخول</p>
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
+          <p className="text-gray-500">يرجى تسجيل الدخول</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen bg-gray-50" dir="rtl">
+    <div className="min-h-screen bg-gray-50 flex flex-col" dir="rtl">
+      <Navbar />
+      <div className="flex flex-1 overflow-hidden">
       {/* قائمة المحادثات */}
-      <div className="w-80 bg-white border-l border-gray-200 flex flex-col">
+      <div className="w-full sm:w-96 lg:w-80 bg-white border-l border-gray-200 flex flex-col md:block hidden">
         {/* Header */}
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center justify-between mb-4">
@@ -178,14 +184,20 @@ export default function ChatPage() {
       </div>
 
       {/* منطقة المحادثة */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col w-full">
         {selectedChat ? (
           <ChatWindow chat={selectedChat} currentUserId={user.uid} />
         ) : (
-          <div className="flex items-center justify-center h-full">
+          <div className="flex items-center justify-center h-full p-4">
             <div className="text-center">
-              <UserCircleIcon className="h-24 w-24 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500">اختر محادثة للبدء</p>
+              <UserCircleIcon className="h-16 sm:h-24 w-16 sm:w-24 text-gray-300 mx-auto mb-4" />
+              <p className="text-sm sm:text-base text-gray-500">اختر محادثة للبدء</p>
+              <button
+                onClick={() => setShowNewChatModal(true)}
+                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition md:hidden"
+              >
+                محادثة جديدة
+              </button>
             </div>
           </div>
         )}
@@ -233,6 +245,7 @@ export default function ChatPage() {
           }}
         />
       )}
+      </div>
     </div>
   );
 }

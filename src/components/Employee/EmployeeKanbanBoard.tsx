@@ -337,7 +337,7 @@ export default function EmployeeKanbanBoard() {
       <div className="space-y-6" dir="rtl">
         {/* Header */}
         <div className="bg-gradient-to-r from-najd-blue to-blue-600 rounded-xl shadow-lg p-6 text-white">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col lg:flex-row items-center justify-between mb-6 gap-4">
             <div>
               <h2 className="text-3xl font-bold flex items-center gap-3">
                 📋 مهام {departmentNames[user.department] || user.department}
@@ -361,7 +361,7 @@ export default function EmployeeKanbanBoard() {
           </div>
 
           {/* Statistics */}
-          <div className={`grid grid-cols-${columns.length} gap-3`}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3">
             {columns.map((column) => {
               const columnOrders = getOrdersByColumn(column.id);
               return (
@@ -382,7 +382,7 @@ export default function EmployeeKanbanBoard() {
         </div>
 
         {/* Kanban Board */}
-        <div className={`grid grid-cols-${columns.length} gap-4`}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3">
           {columns.map((column) => {
             const columnOrders = getOrdersByColumn(column.id);
             return (
